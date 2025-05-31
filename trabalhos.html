@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trabalhos de Grupo - Plataforma Académica ESGTS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 20px;
+      color: #1e293b;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e3a8a;
+      margin-bottom: 30px;
+    }
+
+    .create-card, .work-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .create-card input, .create-card select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .create-card button {
+      width: 100%;
+      background-color: #1e3a8a;
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s;
+    }
+
+    .create-card button:hover {
+      background-color: #2563eb;
+    }
+
+    .work-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .work-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #1e40af;
+    }
+
+    .work-deadline {
+      font-style: italic;
+      color: #64748b;
+    }
+
+    .work-state {
+      margin-bottom: 12px;
+    }
+
+    .work-state select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #94a3b8;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .work-remove {
+      background-color: #ef4444;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+
+    .work-remove:hover {
+      background-color: #dc2626;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .create-card button {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+    <nav style="background: #1e40af; padding: 15px; display: flex; justify-content: center; gap: 40px;">
+        <a href="index.html" style="color: white; font-weight: 600; text-decoration: none;">Início</a>
+        <a href="perfil.html" style="color: white; font-weight: 600; text-decoration: none;">Perfil</a>
+        <a href="frequencias.html" style="color: white; font-weight: 600; text-decoration: none;">Frequências</a>
+        <a href="trabalhos.html" style="color: white; font-weight: 600; text-decoration: underline;">Trabalhos de Grupo</a>
+       
+      </nav>
+  <h1>Trabalhos de Grupo</h1>
+
+  <div class="create-card">
+    <h2>Criar novo trabalho</h2>
+    <input type="text" id="disciplina" placeholder="Nome da disciplina" required />
+    <input type="date" id="prazo" required />
+    <select id="estado">
+      <option value="Preparação">Preparação</option>
+      <option value="Desenvolvimento">Desenvolvimento</option>
+      <option value="Concluído">Concluído</option>
+    </select>
+    <button id="addWorkBtn">Adicionar Trabalho</button>
+  </div>
+
+  <div id="worksContainer">
+    <!-- Trabalhos criados aparecerão aqui -->
+  </div>
+
+  <script>
+    const worksKey = 'trabalhosGrupoESGTS';
+
+    function loadWorks() {
+      const savedWorks = localStorage.getItem(worksKey);
+      return savedWorks ? JSON.parse(savedWorks) : [];
+    }
+
+    function saveWorks(works) {
+      localStorage.setItem(worksKey, JSON.stringify(works));
+    }
+
+    function createWorkCard(work, index) {
+      const card = document.createElement('div');
+      card.className = 'work-card';
+
+      const header = document.createElement('div');
+      header.className = 'work-header';
+
+      const title = document.createElement('div');
+      title.className = 'work-title';
+      title.textContent = work.disciplina;
+
+      const deadline = document.createElement('div');
+      deadline.className = 'work-deadline';
+      deadline.textContent = `Prazo: ${new Date(work.prazo).toLocaleDateString('pt-PT')}`;
+
+      header.appendChild(title);
+      header.appendChild(deadline);
+
+      const stateDiv = document.createElement('div');
+      stateDiv.className = 'work-state';
+
+      const stateSelect = document.createElement('select');
+      ['Preparação', 'Desenvolvimento', 'Concluído'].forEach(status => {
+        const option = document.createElement('option');
+        option.value = status;
+        option.textContent = status;
+        if (status === work.estado) option.selected = true;
+        stateSelect.appendChild(option);
+      });
+
+      stateSelect.addEventListener('change', () => {
+        const works = loadWorks();
+        works[index].estado = stateSelect.value;
+        saveWorks(works);
+      });
+
+      stateDiv.appendChild(stateSelect);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'work-remove';
+      removeBtn.textContent = 'Eliminar';
+      removeBtn.addEventListener('click', () => {
+        let works = loadWorks();
+        works.splice(index, 1);
+        saveWorks(works);
+        renderWorks();
+      });
+
+      card.appendChild(header);
+      card.appendChild(stateDiv);
+      card.appendChild(removeBtn);
+
+      return card;
+    }
+
+    function renderWorks() {
+      const worksContainer = document.getElementById('worksContainer');
+      worksContainer.innerHTML = '';
+      const works = loadWorks();
+
+      if(works.length === 0){
+        worksContainer.innerHTML = '<p>Nenhum trabalho de grupo registado.</p>';
+        return;
+      }
+
+      works.forEach((work, i) => {
+        const card = createWorkCard(work, i);
+        worksContainer.appendChild(card);
+      });
+    }
+
+    document.getElementById('addWorkBtn').addEventListener('click', () => {
+      const disciplina = document.getElementById('disciplina').value.trim();
+      const prazo = document.getElementById('prazo').value;
+      const estado = document.getElementById('estado').value;
+
+      if(!disciplina){
+        alert('Por favor, preencha o nome da disciplina.');
+        return;
+      }
+
+      if(!prazo){
+        alert('Por favor, selecione o prazo.');
+        return;
+      }
+
+      const works = loadWorks();
+      works.push({ disciplina, prazo, estado });
+      saveWorks(works);
+      renderWorks();
+
+      // Reset inputs
+      document.getElementById('disciplina').value = '';
+      document.getElementById('prazo').value = '';
+      document.getElementById('estado').value = 'Preparação';
+    });
+
+    // Render ao carregar página
+    renderWorks();
+  </script>
+
+</body>
+</html>

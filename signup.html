@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registo | Projeto ESGTS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .signup-container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .signup-container h2 {
+      color: #1e3a8a;
+      margin-bottom: 24px;
+      font-weight: 600;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: #2563eb;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background-color: #1e3a8a;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #3749b4;
+    }
+
+    #signupStatus {
+      margin-top: 16px;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    a {
+      display: block;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #2563eb;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .google-btn {
+      background-color: #db4437;
+      margin-top: 12px;
+    }
+
+    .google-btn:hover {
+      background-color: #c23321;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="signup-container">
+    <h2>Criar Conta ESGT</h2>
+
+    <div class="input-group">
+      <input type="name" id="nome" placeholder="Nome | Sobrenome" required />
+    </div>
+
+    <div class="input-group">
+      <input type="email" id="email" placeholder="Email institucional" required />
+    </div>
+
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Senha" required />
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="numeroAluno" placeholder="Número de Aluno" required />
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="curso" placeholder="Curso (ex: Engenharia Informática)" required />
+    </div>
+
+    <button onclick="signup()">Registar</button>
+    <button class="google-btn" onclick="googleSignup()">Continuar com Google</button>
+
+    <p id="signupStatus"></p>
+    <a href="login.html">← Já tenho conta</a>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsv1QX_ZnspXaoFaTZNgAfjKJBbI4Y_gg",
+      authDomain: "webstatic-b919c.firebaseapp.com",
+      projectId: "webstatic-b919c",
+      storageBucket: "webstatic-b919c.appspot.com",
+      messagingSenderId: "25580032987",
+      appId: "1:25580032987:web:a2c0af85b6be497f240dfe",
+      measurementId: "G-80MVV5CD5L"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.signup = async function () {
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const numeroAluno = document.getElementById("numeroAluno").value;
+      const curso = document.getElementById("curso").value;
+      const status = document.getElementById("signupStatus");
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await setDoc(doc(db, "usuarios", user.uid), {
+          nome: nome,
+          email: user.email,
+          numeroAluno: numeroAluno,
+          curso: curso
+        });
+
+        status.innerText = "Conta criada com sucesso!";
+        status.style.color = "green";
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 2000);
+      } catch (error) {
+        status.innerText = "Erro: " + error.message;
+        status.style.color = "red";
+      }
+    };
+
+    window.googleSignup = async function () {
+      const provider = new GoogleAuthProvider();
+      const status = document.getElementById("signupStatus");
+
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // Redirecionar para completar o perfil se necessário
+        status.innerText = "Login com Google bem-sucedido!";
+        status.style.color = "green";
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 2000);
+      } catch (error) {
+        status.innerText = "Erro no login com Google: " + error.message;
+        status.style.color = "red";
+      }
+    };
+  </script>
+
+</body>
+</html>

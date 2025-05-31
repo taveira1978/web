@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Frequências</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #1e3a8a;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav {
+      background: #1e40af;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+    }
+    nav a {
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .main-content {
+      display: flex;
+      flex: 1;
+      padding: 20px;
+      gap: 30px;
+    }
+    .sidebar {
+      width: 250px;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      height: fit-content;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #1e3a8a;
+    }
+    .card {
+      background: #e0f2fe;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .calendar {
+      flex: 1;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .calendar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .month-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .month-nav button {
+      background: #1e3a8a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .day, .day-name {
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .day {
+      background: #f1f5f9;
+      cursor: pointer;
+    }
+    .day:hover {
+      background: #e2e8f0;
+    }
+    .day.marked {
+      background: #1e3a8a;
+      color: white;
+      font-weight: bold;
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      display: none;
+      z-index: 10;
+      width: 320px;
+    }
+    .popup input, .popup button {
+      margin-top: 10px;
+      width: 90%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      z-index: 5;
+    }
+    #authStatus {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    #btnAuth {
+      background: #2563eb;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Frequências</h1>
+    <div>
+      <span id="authStatus">Não autenticado</span>
+     
+    </div>
+  </header>
+  <nav style="background: #1e40af; padding: 15px; display: flex; justify-content: center; gap: 40px;">
+    <a href="index.html" style="color: white; font-weight: 600; text-decoration: none;">Início</a>
+    <a href="perfil.html" style="color: white; font-weight: 600; text-decoration: none;">Perfil</a>
+    <a href="frequencias.html" style="color: white; font-weight: 600; text-decoration: underline;">Frequências</a>
+    <a href="trabalhos.html" style="color: white; font-weight: 600; text-decoration: none;">Trabalhos de Grupo</a>
+  </nav>
+  <div class="main-content">
+    <div class="sidebar">
+      <h3>Frequências Marcadas</h3>
+      <div id="lista-frequencias"></div>
+    </div>
+
+    <div class="calendar">
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">←</button>
+        <h2 id="monthYear"></h2>
+        <button onclick="changeMonth(1)">→</button>
+      </div>
+      <div class="days" id="calendarDays"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="closePopup()"></div>
+  <div class="popup" id="popup">
+    <h3>Adicionar Frequência</h3>
+    <p id="selectedDate"></p>
+    <input type="text" id="descricao" placeholder="Disciplina:" />
+    <input type="time" id="hora" />
+    <button onclick="salvarFrequencia()">Guardar</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsv1QX_ZnspXaoFaTZNgAfjKJBbI4Y_gg",
+      authDomain: "webstatic-b919c.firebaseapp.com",
+      projectId: "webstatic-b919c",
+      storageBucket: "webstatic-b919c.appspot.com",
+      messagingSenderId: "25580032987",
+      appId: "1:25580032987:web:a2c0af85b6be497f240dfe",
+      measurementId: "G-80MVV5CD5L"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    let currentDate = new Date();
+    const calendarDays = document.getElementById("calendarDays");
+    const monthYear = document.getElementById("monthYear");
+    const popup = document.getElementById("popup");
+    const overlay = document.getElementById("overlay");
+    const selectedDateEl = document.getElementById("selectedDate");
+    const listaFrequencias = document.getElementById("lista-frequencias");
+    const authStatus = document.getElementById("authStatus");
+  
+
+    let selectedDate = "";
+    let eventos = {}; // key: date, value: { descricao, hora }
+
+    let currentUser = null;
+
+    // Escuta mudança no estado de autenticação
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        authStatus.textContent = `Olá, ${user.displayName || user.email}`;
+       
+        carregarFrequencias();
+      } else {
+        currentUser = null;
+        authStatus.textContent = "Não autenticado";
+      
+        eventos = {};
+        renderCalendar();
+      }
+    });
+
+
+    async function carregarFrequencias() {
+      if (!currentUser) return;
+      eventos = {};
+
+      // Query para filtrar frequências do usuário logado (campo userId)
+      const freqCollection = collection(db, "frequencias");
+      const q = query(freqCollection, where("userId", "==", currentUser.uid));
+
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        eventos[doc.id] = doc.data();
+      });
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      calendarDays.innerHTML = "";
+      monthYear.textContent = currentDate.toLocaleString('pt-PT', { month: 'long', year: 'numeric' });
+
+      diasSemana.forEach(dia => {
+        const el = document.createElement("div");
+        el.textContent = dia;
+        el.classList.add("day-name");
+        calendarDays.appendChild(el);
+      });
+
+      for (let i = 0; i < firstDay; i++) {
+        calendarDays.appendChild(document.createElement("div"));
+      }
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const data = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const el = document.createElement("div");
+        el.textContent = i;
+        el.classList.add("day");
+        if (eventos[data]) {
+          el.classList.add("marked");
+          el.title = `${eventos[data].descricao} às ${eventos[data].hora}`;
+        }
+        el.onclick = () => {
+          if (!currentUser) {
+            alert("Por favor, faça login para adicionar frequências.");
+            return;
+          }
+          abrirPopup(data);
+        };
+        calendarDays.appendChild(el);
+      }
+
+      renderListaFrequencias();
+    }
+
+    function renderListaFrequencias() {
+      listaFrequencias.innerHTML = "";
+      const datasOrdenadas = Object.keys(eventos).sort((a, b) => new Date(a) - new Date(b));
+      for (const data of datasOrdenadas) {
+        const { descricao, hora } = eventos[data];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <strong>${data}</strong><br>
+          ${descricao} às ${hora}<br>
+          <button onclick="eliminarFrequencia('${data}')" style="margin-top: 5px; background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+            Eliminar
+          </button>
+        `;
+        listaFrequencias.appendChild(card);
+      }
+    }
+
+    window.eliminarFrequencia = async function(data) {
+      if (!currentUser) {
+        alert("Por favor, faça login para eliminar frequências.");
+        return;
+      }
+      try {
+        // Apaga doc com id=data e userId do usuário logado
+        const freqDoc = doc(db, "frequencias", data);
+        // Opcional: aqui poderia verificar userId do doc antes de apagar para evitar apagar frequência de outro usuário
+        await deleteDoc(freqDoc);
+        delete eventos[data];
+        renderCalendar();
+      } catch (error) {
+        alert("Erro ao eliminar frequência: " + error.message);
+      }
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function abrirPopup(data) {
+      selectedDate = data;
+      selectedDateEl.textContent = `Data: ${data}`;
+      document.getElementById("descricao").value = eventos[data]?.descricao || "";
+      document.getElementById("hora").value = eventos[data]?.hora || "";
+      popup.style.display = "block";
+      overlay.style.display = "block";
+    }
+
+    function closePopup() {
+      popup.style.display = "none";
+      overlay.style.display = "none";
+    }
+
+    window.salvarFrequencia = async function() {
+      if (!currentUser) {
+        alert("Por favor, faça login para guardar frequências.");
+        return;
+      }
+      const descricao = document.getElementById("descricao").value.trim();
+      const hora = document.getElementById("hora").value;
+      if (!descricao) {
+        alert("Por favor, insira uma descrição.");
+        return;
+      }
+      if (!hora) {
+        alert("Por favor, insira uma hora.");
+        return;
+      }
+      try {
+        // Salvar frequência incluindo o userId
+        await setDoc(doc(db, "frequencias", selectedDate), { descricao, hora, userId: currentUser.uid });
+        eventos[selectedDate] = { descricao, hora };
+        closePopup();
+        renderCalendar();
+      } catch (error) {
+        alert("Erro ao salvar frequência: " + error.message);
+      }
+    }
+
+  </script>
+</body>
+</html>

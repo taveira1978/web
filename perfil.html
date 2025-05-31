@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil do Aluno</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #1e3a8a;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .profile-container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #1e3a8a;
+    }
+
+    .info {
+      line-height: 1.8;
+    }
+
+    .info p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Perfil do Aluno</h1>
+  </header>
+
+  <nav style="background: #1e40af; padding: 15px; display: flex; justify-content: center; gap: 40px;">
+    <a href="index.html" style="color: white; font-weight: 600; text-decoration: none;">Início</a>
+    <a href="perfil.html" style="color: white; font-weight: 600; text-decoration: underline;">Perfil</a>
+    <a href="frequencias.html" style="color: white; font-weight: 600; text-decoration: none;">Frequências</a>
+    <a href="trabalhos.html" style="color: white; font-weight: 600; text-decoration: none;">Trabalhos de Grupo</a>
+   
+  </nav>
+
+  <div class="profile-container">
+    <h2>Dados Pessoais</h2>
+    <div class="info">
+      <p><strong>Nome:</strong> <span id="nome-aluno">Carregando...</span></p>
+      <p><strong>Email:</strong> <span id="email-aluno">Carregando...</span></p>
+      <p><strong>Número de Aluno:</strong> <span id="numero-aluno">Carregando...</span></p>
+      <p><strong>Curso:</strong> <span id="curso-aluno">Carregando...</span></p>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
+  <script type="module">
+    // Importa Firebase no modo modular
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsv1QX_ZnspXaoFaTZNgAfjKJBbI4Y_gg",
+      authDomain: "webstatic-b919c.firebaseapp.com",
+      projectId: "webstatic-b919c",
+      storageBucket: "webstatic-b919c.appspot.com",
+      messagingSenderId: "25580032987",
+      appId: "1:25580032987:web:a2c0af85b6be497f240dfe",
+      measurementId: "G-80MVV5CD5L"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+  
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Não autenticado. Redirecionando...");
+        window.location.href = "index.html";
+        return;
+      }
+  
+      const docRef = doc(db, "usuarios", user.uid);
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("nome-aluno").textContent = data.nome || "Sem nome";
+        document.getElementById("email-aluno").textContent = data.email || user.email || "Sem email";
+        document.getElementById("numero-aluno").textContent = data.numeroAluno || "N/D";
+        document.getElementById("curso-aluno").textContent = data.curso || "N/D";
+      } else {
+        document.getElementById("nome-aluno").textContent = "Usuário não encontrado";
+        document.getElementById("email-aluno").textContent = user.email || "Sem email";
+      }
+    });
+  </script>
+</body>
+</html>

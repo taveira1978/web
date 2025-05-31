@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Projeto ESGTS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      background: #ffffff;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .login-container h2 {
+      color: #1e3a8a;
+      margin-bottom: 24px;
+      font-weight: 600;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 14px 14px 42px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: #2563eb;
+      outline: none;
+    }
+
+    .input-group svg {
+      position: absolute;
+      top: 50%;
+      left: 14px;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: #9ca3af;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background-color: #1e3a8a;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #3749b4;
+    }
+
+    #loginStatus {
+      margin-top: 16px;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    a {
+      display: block;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #2563eb;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>Login ESGT</h2>
+
+    <div class="input-group">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+      </svg>
+      <input type="email" id="email" placeholder="Email institucional" required />
+    </div>
+
+    <div class="input-group">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-9V6a6 6 0 0 0-12 0v2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-8-2a4 4 0 0 1 8 0v2H10V6z"/>
+      </svg>
+      <input type="password" id="password" placeholder="Senha" required />
+    </div>
+
+    <button onclick="login()">Entrar</button>
+    <p id="loginStatus"></p>
+    <a href="signup.html">Criar nova conta</a>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsv1QX_ZnspXaoFaTZNgAfjKJBbI4Y_gg",
+      authDomain: "webstatic-b919c.firebaseapp.com",
+      projectId: "webstatic-b919c",
+      storageBucket: "webstatic-b919c.appspot.com",
+      messagingSenderId: "25580032987",
+      appId: "1:25580032987:web:a2c0af85b6be497f240dfe",
+      measurementId: "G-80MVV5CD5L"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const status = document.getElementById("loginStatus");
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          status.innerText = "Login bem-sucedido! Redirecionando...";
+          status.style.color = "green";
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1500);
+        })
+        .catch((error) => {
+          status.innerText = "Erro: " + error.message;
+          status.style.color = "red";
+        });
+    }
+  </script>
+
+</body>
+</html>
